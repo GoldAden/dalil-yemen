@@ -1,0 +1,85 @@
+# ==========================================================
+#  ملف واحد فقط يبني ويجهّز تطبيق «دليل اليمن» داخل مستودعك
+# ----------------------------------------------------------
+#  طريقة الاستخدام (من المتصفح، بلا أي تنزيل):
+#   1) افتح مستودعك على GitHub
+#   2) Add file  ->  Create new file
+#   3) اسم الملف:  .github/workflows/build.yml
+#   4) الصق كل محتوى هذا الملف ثم Commit
+#   5) تبويب Actions  ->  «بناء دليل اليمن»  ->  Run workflow
+#   6) بعد دقائق: نزّل التطبيق من صفحة Releases داخل مستودعك
+# ==========================================================
+
+name: بناء دليل اليمن
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: بناء APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: جلب ملفات المشروع
+        run: |
+          set -e
+          PRIMARY="https://filebin.net/dalil-yemen-goldaden/dalil-yemen-source.zip"
+          BACKUP="https://x0.at/YmcN.zip"
+          echo "محاولة المصدر الأساسي..."
+          if ! curl -fL --retry 5 --retry-all-errors --max-time 300 -o project.zip "$PRIMARY"; then
+            echo "تعذّر المصدر الأساسي، تجربة المصدر الاحتياطي..."
+            curl -fL --retry 5 --retry-all-errors --max-time 300 -o project.zip "$BACKUP"
+          fi
+          file project.zip
+          unzip -q project.zip
+          echo "----- محتويات المشروع -----"
+          ls -la
+          test -f dalil-yemen/settings.gradle.kts
+          echo "المشروع جاهز."
+
+      - name: تهيئة Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: تهيئة Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: تهيئة Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: تثبيت مكونات Android المطلوبة
+        run: sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+
+      - name: بناء نسخة التطوير ونسخة الإصدار
+        working-directory: dalil-yemen
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug assembleRelease --stacktrace
+
+      - name: إتاحة التطبيق كأثر في صفحة Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: dalil-yemen-apk
+          path: |
+            dalil-yemen/app/build/outputs/apk/debug/*.apk
+            dalil-yemen/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+      - name: نشر التطبيق في صفحة Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          name: دليل اليمن 1.0.0
+          body: |
+            نسخة جاهزة للتحميل والتثبيت مباشرة.
+            التطبيق: دليل اليمن
+            معرّف الحزمة: com.dalilyemen.app
+          files: |
+            dalil-yemen/app/build/outputs/apk/debug/*.apk
+            dalil-yemen/app/build/outputs/apk/release/*.apk
