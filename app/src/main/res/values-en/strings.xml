@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Dalil Yemen</string>
+    <string name="app_tagline">Find everything you need nearby</string>
+
+    <string name="search_hint">Search for a place or service…</string>
+    <string name="search_title">Search</string>
+    <string name="search_empty">Type a name or service to search</string>
+    <string name="search_no_results">No matching results</string>
+
+    <string name="section_categories">Categories</string>
+    <string name="section_nearby">Places near me</string>
+    <string name="section_featured">Featured</string>
+    <string name="cat_restaurants">Restaurants &amp; Cafes</string>
+    <string name="cat_health">Hospitals &amp; Pharmacies</string>
+    <string name="cat_fuel">Fuel Stations</string>
+    <string name="cat_maintenance">Maintenance Workshops</string>
+    <string name="cat_electronics">Phones &amp; Electronics</string>
+    <string name="cat_stores">Shops &amp; Markets</string>
+
+    <string name="filter_city">City</string>
+    <string name="filter_category">Category</string>
+    <string name="filter_all">All</string>
+    <string name="filter_apply">Apply</string>
+    <string name="filter_reset">Reset</string>
+
+    <string name="detail_description">Description</string>
+    <string name="detail_phone">Phone</string>
+    <string name="detail_address">Address</string>
+    <string name="detail_hours">Working hours</string>
+    <string name="detail_location">Location</string>
+    <string name="detail_photos">Photos</string>
+    <string name="detail_open_map">Open in maps</string>
+    <string name="detail_call">Call</string>
+    <string name="detail_share">Share</string>
+    <string name="detail_unavailable">Not available</string>
+    <string name="detail_no_photos">No photos available</string>
+
+    <string name="location_permission_title">Enable nearby places</string>
+    <string name="location_permission_body">We need location access to show places near you. You can still use the app without it.</string>
+    <string name="location_allow">Allow location access</string>
+    <string name="location_denied">Location permission denied — you can continue using search and filters.</string>
+    <string name="location_loading">Locating you…</string>
+    <string name="location_unavailable">Could not determine location</string>
+    <string name="location_off">Location services are disabled on this device</string>
+
+    <string name="state_empty_title">No data yet</string>
+    <string name="state_empty_body">The structure is ready to connect a database or backend. Add a data source and content will appear here.</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_back">Back</string>
+    <string name="loading">Loading…</string>
+
+    <string name="cd_category_icon">Category icon</string>
+    <string name="cd_place_image">Place image</string>
+</resources>

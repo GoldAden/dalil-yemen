@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">دليل اليمن</string>
+    <string name="app_tagline">اعثر على كل ما تحتاجه قريباً منك</string>
+
+    <!-- البحث -->
+    <string name="search_hint">ابحث عن محل أو خدمة…</string>
+    <string name="search_title">البحث</string>
+    <string name="search_empty">اكتب اسماً أو خدمة للبحث</string>
+    <string name="search_no_results">لا توجد نتائج مطابقة</string>
+
+    <!-- الأقسام -->
+    <string name="section_categories">الأقسام</string>
+    <string name="section_nearby">الأماكن القريبة مني</string>
+    <string name="section_featured">مقترحة</string>
+    <string name="cat_restaurants">المطاعم والمقاهي</string>
+    <string name="cat_health">المستشفيات والصيدليات</string>
+    <string name="cat_fuel">محطات الوقود</string>
+    <string name="cat_maintenance">ورش الصيانة</string>
+    <string name="cat_electronics">محلات الجوالات والإلكترونيات</string>
+    <string name="cat_stores">المتاجر والأسواق</string>
+
+    <!-- التصفية -->
+    <string name="filter_city">المدينة</string>
+    <string name="filter_category">التصنيف</string>
+    <string name="filter_all">الكل</string>
+    <string name="filter_apply">تطبيق</string>
+    <string name="filter_reset">إعادة تعيين</string>
+
+    <!-- التفاصيل -->
+    <string name="detail_description">الوصف</string>
+    <string name="detail_phone">رقم الهاتف</string>
+    <string name="detail_address">العنوان</string>
+    <string name="detail_hours">ساعات العمل</string>
+    <string name="detail_location">الموقع</string>
+    <string name="detail_photos">الصور</string>
+    <string name="detail_open_map">فتح في الخرائط</string>
+    <string name="detail_call">اتصال</string>
+    <string name="detail_share">مشاركة</string>
+    <string name="detail_unavailable">غير متوفر</string>
+    <string name="detail_no_photos">لا توجد صور متاحة</string>
+
+    <!-- الموقع -->
+    <string name="location_permission_title">تفعيل الأماكن القريبة</string>
+    <string name="location_permission_body">نحتاج إذن الموقع لعرض المحلات والخدمات القريبة منك. يمكنك استخدام التطبيق دون ذلك.</string>
+    <string name="location_allow">السماح بالوصول للموقع</string>
+    <string name="location_denied">تم رفض إذن الموقع — يمكنك المتابعة باستخدام البحث والتصفية.</string>
+    <string name="location_loading">جارٍ تحديد موقعك…</string>
+    <string name="location_unavailable">تعذّر تحديد الموقع</string>
+    <string name="location_off">خدمة الموقع غير مفعّلة في الجهاز</string>
+
+    <!-- حالات عامة -->
+    <string name="state_empty_title">لا توجد بيانات بعد</string>
+    <string name="state_empty_body">البنية جاهزة لربط قاعدة بيانات أو خدمة خلفية. أضف مصدر البيانات ليظهر المحتوى هنا.</string>
+    <string name="action_retry">إعادة المحاولة</string>
+    <string name="action_back">رجوع</string>
+    <string name="loading">جارٍ التحميل…</string>
+
+    <!-- الوصف -->
+    <string name="cd_category_icon">أيقونة القسم</string>
+    <string name="cd_place_image">صورة المكان</string>
+</resources>
