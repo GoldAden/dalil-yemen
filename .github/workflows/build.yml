@@ -1,13 +1,7 @@
 # ==========================================================
-#  ملف واحد فقط يبني ويجهّز تطبيق «دليل اليمن» داخل مستودعك
-# ----------------------------------------------------------
-#  طريقة الاستخدام (من المتصفح، بلا أي تنزيل):
-#   1) افتح مستودعك على GitHub
-#   2) Add file  ->  Create new file
-#   3) اسم الملف:  .github/workflows/build.yml
-#   4) الصق كل محتوى هذا الملف ثم Commit
-#   5) تبويب Actions  ->  «بناء دليل اليمن»  ->  Run workflow
-#   6) بعد دقائق: نزّل التطبيق من صفحة Releases داخل مستودعك
+#  بناء تطبيق «دليل اليمن» تلقائياً داخل مستودعك
+#  المسار المطلوب:  .github/workflows/build.yml
+#  التشغيل: تبويب Actions -> بناء دليل اليمن -> Run workflow
 # ==========================================================
 
 name: بناء دليل اليمن
@@ -21,7 +15,7 @@ permissions:
 jobs:
   build:
     name: بناء APK
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: جلب ملفات المشروع
@@ -29,17 +23,14 @@ jobs:
           set -e
           PRIMARY="https://filebin.net/dalil-yemen-goldaden/dalil-yemen-source.zip"
           BACKUP="https://x0.at/YmcN.zip"
-          echo "محاولة المصدر الأساسي..."
           if ! curl -fL --retry 5 --retry-all-errors --max-time 300 -o project.zip "$PRIMARY"; then
-            echo "تعذّر المصدر الأساسي، تجربة المصدر الاحتياطي..."
+            echo "المصدر الأساسي تعذّر، تجربة الاحتياطي..."
             curl -fL --retry 5 --retry-all-errors --max-time 300 -o project.zip "$BACKUP"
           fi
-          file project.zip
           unzip -q project.zip
-          echo "----- محتويات المشروع -----"
           ls -la
           test -f dalil-yemen/settings.gradle.kts
-          echo "المشروع جاهز."
+          echo "المشروع جاهز للبناء."
 
       - name: تهيئة Java 17
         uses: actions/setup-java@v4
@@ -47,20 +38,32 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: تهيئة Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: تهيئة Gradle
-        uses: gradle/actions/setup-gradle@v3
-
-      - name: تثبيت مكونات Android المطلوبة
-        run: sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+      - name: تجهيز مكونات Android
+        run: |
+          set -e
+          export ANDROID_HOME="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          export ANDROID_SDK_ROOT="$ANDROID_HOME"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          echo "مجلد أدوات أندرويد: $ANDROID_HOME"
+          ls "$ANDROID_HOME" || true
+          SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKM" ]; then
+            SDKM=$(find "$ANDROID_HOME" -name sdkmanager -type f 2>/dev/null | head -1)
+          fi
+          echo "أداة الإدارة: $SDKM"
+          yes | "$SDKM" --licenses > /dev/null 2>&1 || true
+          "$SDKM" "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+          printf 'sdk.dir=%s\n' "$ANDROID_HOME" > dalil-yemen/local.properties
+          cat dalil-yemen/local.properties
 
       - name: بناء نسخة التطوير ونسخة الإصدار
         working-directory: dalil-yemen
         run: |
           chmod +x ./gradlew
-          ./gradlew assembleDebug assembleRelease --stacktrace
+          ./gradlew assembleDebug assembleRelease --stacktrace --no-daemon
 
       - name: إتاحة التطبيق كأثر في صفحة Actions
         uses: actions/upload-artifact@v4
