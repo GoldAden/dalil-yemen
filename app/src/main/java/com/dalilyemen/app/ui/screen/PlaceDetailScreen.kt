@@ -20,7 +20,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.Call
+import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Schedule
@@ -32,6 +36,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -48,11 +53,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.dalilyemen.app.R
 import com.dalilyemen.app.data.model.Place
 import com.dalilyemen.app.ui.MainViewModel
 import com.dalilyemen.app.ui.component.EmptyState
+import com.dalilyemen.app.ui.component.kindLabel
 
 /**
  * شاشة تفاصيل المحل: الاسم، الوصف، الهاتف، العنوان، ساعات العمل،
@@ -68,11 +75,14 @@ fun PlaceDetailScreen(
 ) {
     var place by remember { mutableStateOf<Place?>(null) }
     var loaded by remember { mutableStateOf(false) }
+    val favoriteIds by viewModel.favoriteIds.collectAsStateWithLifecycle()
 
     LaunchedEffect(placeId) {
         place = viewModel.placeById(placeId)
         loaded = true
     }
+
+    val isFavorite = favoriteIds.contains(placeId)
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -84,6 +94,26 @@ fun PlaceDetailScreen(
                         Icon(
                             Icons.AutoMirrored.Outlined.ArrowBack,
                             contentDescription = stringResource(R.string.action_back),
+                        )
+                    }
+                },
+                actions = {
+                    // زرّ المفضلة متاح دائماً في الشريط العلوي.
+                    IconButton(onClick = { viewModel.toggleFavorite(placeId) }) {
+                        Icon(
+                            imageVector = if (isFavorite) {
+                                Icons.Filled.Favorite
+                            } else {
+                                Icons.Outlined.FavoriteBorder
+                            },
+                            contentDescription = stringResource(
+                                if (isFavorite) R.string.favorite_remove else R.string.favorite_add
+                            ),
+                            tint = if (isFavorite) {
+                                MaterialTheme.colorScheme.error
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            },
                         )
                     }
                 },
@@ -113,6 +143,8 @@ fun PlaceDetailScreen(
 
             else -> PlaceDetailContent(
                 place = current,
+                isFavorite = isFavorite,
+                onToggleFavorite = { viewModel.toggleFavorite(current.id) },
                 contentPadding = inner,
             )
         }
@@ -122,6 +154,8 @@ fun PlaceDetailScreen(
 @Composable
 private fun PlaceDetailContent(
     place: Place,
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit,
     contentPadding: PaddingValues,
 ) {
     val context = LocalContext.current
@@ -201,6 +235,13 @@ private fun PlaceDetailContent(
         // --- معلومات أساسية ---
         item {
             Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                if (!place.kindValue.isNullOrBlank()) {
+                    InfoRow(
+                        icon = Icons.Outlined.Category,
+                        label = stringResource(R.string.detail_kind),
+                        value = kindLabel(place.kindValue),
+                    )
+                }
                 InfoRow(
                     icon = Icons.Outlined.Call,
                     label = stringResource(R.string.detail_phone),
@@ -215,6 +256,73 @@ private fun PlaceDetailContent(
                     icon = Icons.Outlined.Schedule,
                     label = stringResource(R.string.detail_hours),
                     value = place.openingHours,
+                )
+            }
+        }
+
+        // --- تنبيه الموقع التقريبي ---
+        if (place.coordinatesApproximate) {
+            item {
+                Surface(
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    shape = MaterialTheme.shapes.medium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 6.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Info,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                        )
+                        Text(
+                            text = stringResource(R.string.detail_approximate_location),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        )
+                    }
+                }
+            }
+        }
+
+        // --- مصدر البيانات ---
+        if (place.addedByUser) {
+            item {
+                Text(
+                    text = stringResource(R.string.source_user_added),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                )
+            }
+        }
+
+        // --- المفضلة ---
+        item {
+            OutlinedButton(
+                onClick = onToggleFavorite,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 6.dp),
+            ) {
+                Icon(
+                    imageVector = if (isFavorite) {
+                        Icons.Filled.Favorite
+                    } else {
+                        Icons.Outlined.FavoriteBorder
+                    },
+                    contentDescription = null,
+                )
+                Spacer(Modifier.size(6.dp))
+                Text(
+                    stringResource(
+                        if (isFavorite) R.string.favorite_remove else R.string.favorite_add
+                    )
                 )
             }
         }
@@ -284,6 +392,16 @@ private fun PlaceDetailContent(
                 Spacer(Modifier.size(6.dp))
                 Text(stringResource(R.string.detail_share))
             }
+        }
+
+        // --- إسناد المصدر ---
+        item {
+            Text(
+                text = stringResource(R.string.attribution_osm),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            )
         }
     }
 }

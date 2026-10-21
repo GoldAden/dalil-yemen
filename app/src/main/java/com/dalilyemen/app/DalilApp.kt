@@ -6,13 +6,14 @@ import com.dalilyemen.app.data.repository.DalilRepositoryProvider
 /**
  * نقطة تهيئة التطبيق.
  *
- * لا تُنشأ هنا أي بيانات مختلقة. المصدر الحقيقي للمحلات يُربط لاحقاً
- * عبر [DalilRepositoryProvider] (قاعدة بيانات محلية أو خدمة خلفية).
+ * نهيّئ هنا مصدر البيانات الحقيقي: لقطة مضمّنة من OpenStreetMap تعمل دون
+ * إنترنت، مع بحث حيّ عند توفّر الاتصال. التهيئة تقبل سياق التطبيق لأن
+ * المصدر يقرأ اللقطة المضمّنة ويحفظ كاشاً محلياً على الجهاز.
  */
 class DalilApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        DalilRepositoryProvider.init()
+        DalilRepositoryProvider.init(this)
     }
 }

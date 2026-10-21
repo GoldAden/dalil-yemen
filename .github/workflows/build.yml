@@ -1,13 +1,16 @@
 # ==========================================================
-#  بناء تطبيق «دليل اليمن» تلقائياً داخل مستودعك
-#  المسار المطلوب:  .github/workflows/build.yml
+#  بناء تطبيق «دليل اليمن» تلقائياً
+#  المسار: .github/workflows/build.yml
 #  التشغيل: تبويب Actions -> بناء دليل اليمن -> Run workflow
+#  المشروع يُبنى من الشيفرة الموجودة في هذا المستودع نفسه.
 # ==========================================================
 
 name: بناء دليل اليمن
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ main ]
 
 permissions:
   contents: write
@@ -18,19 +21,8 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: جلب ملفات المشروع
-        run: |
-          set -e
-          PRIMARY="https://filebin.net/dalil-yemen-goldaden/dalil-yemen-source.zip"
-          BACKUP="https://x0.at/YmcN.zip"
-          if ! curl -fL --retry 5 --retry-all-errors --max-time 300 -o project.zip "$PRIMARY"; then
-            echo "المصدر الأساسي تعذّر، تجربة الاحتياطي..."
-            curl -fL --retry 5 --retry-all-errors --max-time 300 -o project.zip "$BACKUP"
-          fi
-          unzip -q project.zip
-          ls -la
-          test -f dalil-yemen/settings.gradle.kts
-          echo "المشروع جاهز للبناء."
+      - name: جلب شيفرة المشروع
+        uses: actions/checkout@v4
 
       - name: تهيئة Java 17
         uses: actions/setup-java@v4
@@ -47,20 +39,16 @@ jobs:
           echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
           echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
           echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
-          echo "مجلد أدوات أندرويد: $ANDROID_HOME"
-          ls "$ANDROID_HOME" || true
           SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           if [ ! -x "$SDKM" ]; then
             SDKM=$(find "$ANDROID_HOME" -name sdkmanager -type f 2>/dev/null | head -1)
           fi
-          echo "أداة الإدارة: $SDKM"
           yes | "$SDKM" --licenses > /dev/null 2>&1 || true
           "$SDKM" "platforms;android-34" "build-tools;34.0.0" "platform-tools"
-          printf 'sdk.dir=%s\n' "$ANDROID_HOME" > dalil-yemen/local.properties
-          cat dalil-yemen/local.properties
+          printf 'sdk.dir=%s\n' "$ANDROID_HOME" > local.properties
+          cat local.properties
 
       - name: بناء نسخة التطوير ونسخة الإصدار
-        working-directory: dalil-yemen
         run: |
           chmod +x ./gradlew
           ./gradlew assembleDebug assembleRelease --stacktrace --no-daemon
@@ -70,19 +58,20 @@ jobs:
         with:
           name: dalil-yemen-apk
           path: |
-            dalil-yemen/app/build/outputs/apk/debug/*.apk
-            dalil-yemen/app/build/outputs/apk/release/*.apk
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
       - name: نشر التطبيق في صفحة Releases
+        if: github.event_name == 'workflow_dispatch'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.0
-          name: دليل اليمن 1.0.0
+          tag_name: build-${{ github.run_number }}
+          name: دليل اليمن — بناء رقم ${{ github.run_number }}
           body: |
             نسخة جاهزة للتحميل والتثبيت مباشرة.
             التطبيق: دليل اليمن
             معرّف الحزمة: com.dalilyemen.app
           files: |
-            dalil-yemen/app/build/outputs/apk/debug/*.apk
-            dalil-yemen/app/build/outputs/apk/release/*.apk
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/release/*.apk

@@ -1,11 +1,23 @@
 package com.dalilyemen.app.data.model
 
+/** من أين جاءت بيانات هذا المكان. */
+enum class PlaceSource {
+
+    /** بيانات حيّة مباشرة من OpenStreetMap. */
+    OPENSTREETMAP,
+
+    /** نسخة مخزّنة (لقطة) من OpenStreetMap مضمّنة مع التطبيق للعمل دون إنترنت. */
+    OPENSTREETMAP_SNAPSHOT,
+
+    /** مكان أضافه المستخدم بنفسه داخل التطبيق. */
+    USER,
+}
+
 /**
  * نموذج المحل/الخدمة المعروض في التطبيق.
  *
- * ملاحظة مهمة: لا يحتوي المشروع على أي بيانات محلات حقيقية أو مختلقة.
- * هذا النموذج هو العقد الذي تُملأ به البيانات عند ربط قاعدة البيانات
- * أو الخدمة الخلفية.
+ * كل حقل يأتي من مصدره الحقيقي: بيانات OpenStreetMap كما هي في الوسوم،
+ * أو ما كتبه المستخدم في نموذج الإضافة. لا تُختلق أسماء ولا أرقام.
  */
 data class Place(
     val id: String,
@@ -21,7 +33,25 @@ data class Place(
     val photoUrls: List<String> = emptyList(),
     /** يُستخدم لاحقاً لتمييز المحلات المشتركة في الإعلانات المدفوعة. */
     val isSponsored: Boolean = false,
-)
+    /** مفتاح الوسم الأصلي في OpenStreetMap، مثل: shop. */
+    val kindKey: String? = null,
+    /** قيمة الوسم الأصلي، مثل: mobile_phone. */
+    val kindValue: String? = null,
+    /** الجهة المشغّلة كما هي مكتوبة في المصدر، مثل: شركة النفط. */
+    val operatorName: String? = null,
+    /**
+     * هل الإحداثيات تقريبية؟
+     *
+     * يصير هذا true عندما يضيف المستخدم محلاً بلا موقع دقيق من الخريطة،
+     * فنعتمد مركز مدينته ونُعلن أن الموقع تقريبي بدل ادّعاء دقة غير موجودة.
+     */
+    val coordinatesApproximate: Boolean = false,
+    val source: PlaceSource = PlaceSource.OPENSTREETMAP,
+) {
+
+    /** هل أضاف هذا المكان مستخدم التطبيق؟ */
+    val addedByUser: Boolean get() = source == PlaceSource.USER
+}
 
 /** إحداثيات جغرافية بسيطة مستقلة عن أي مكتبة خارجية. */
 data class LatLng(

@@ -1,26 +1,33 @@
 package com.dalilyemen.app.data.repository
 
+import android.content.Context
+
 /**
  * نقطة واحدة لتزويد التطبيق بمصدر البيانات.
  *
- * خطوات التوسعة لاحقاً:
- *  1. أنشئ تنفيذاً جديداً لـ [PlaceRepository]، مثلاً:
- *     - [RoomPlaceRepository] لقاعدة بيانات محلية.
- *     - [RemotePlaceRepository] لخدمة خلفية عبر الشبكة.
- *  2. بدّل السطر في [init] ليصبح التنفيذ الجديد.
- *
- * لا تحتاج أي شاشة إلى تعديل.
+ * الخطوة الأولى للتهيئة تمرّر سياق التطبيق حتى يقرأ المصدر اللقطة المضمّنة
+ * والكاش المحلي. من أراد تغيير المصدر لاحقاً (قاعدة بيانات أو خدمة خلفية)
+ * يُنشئ تنفيذاً آخر لـ [PlaceRepository] ويبدّل السطر في [init] فقط،
+ * دون لمس أي شاشة.
  */
 object DalilRepositoryProvider {
 
     @Volatile
-    private var repository: PlaceRepository = EmptyPlaceRepository()
+    private var repository: PlaceRepository? = null
 
-    fun init() {
-        // مثال مستقبلي:
-        // repository = RemotePlaceRepository(apiClient = DalilApi.create())
-        repository = EmptyPlaceRepository()
+    /** يُنشئ المستودع مرة واحدة (نداءات متكرّرة لا تُنشئ نسخاً جديدة). */
+    @Synchronized
+    fun init(context: Context) {
+        if (repository == null) {
+            repository = OsmPlaceRepository(context.applicationContext)
+        }
     }
 
-    fun places(): PlaceRepository = repository
+    /**
+     * المستودع الحالي.
+     *
+     * إن نُودع قبل التهيئة نُرجع تنفيذاً آمناً لا يعطّل التطبيق، مع بقاء
+     * التهيئة مسؤولية فئة التطبيق عند الإقلاع.
+     */
+    fun places(): PlaceRepository = repository ?: SafeEmptyRepository()
 }

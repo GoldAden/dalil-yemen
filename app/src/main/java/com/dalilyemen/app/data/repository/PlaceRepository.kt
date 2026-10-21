@@ -7,7 +7,7 @@ import com.dalilyemen.app.data.model.Place
  * العقد الذي يحدد كيف يحصل التطبيق على بيانات المحلات.
  *
  * الشاشات تعتمد على هذه الواجهة فقط، لذلك يمكن لاحقاً تبديل التنفيذ
- * إلى Room أو Retrofit أو Firebase دون تعديل واجهات المستخدم.
+ * إلى قاعدة بيانات محلية أو خدمة خلفية دون تعديل واجهات المستخدم.
  */
 interface PlaceRepository {
 
@@ -36,4 +36,30 @@ interface PlaceRepository {
 
     /** تفاصيل محل واحد. */
     suspend fun getById(id: String): Place?
+
+    // --- معلومات الحالة ---
+
+    /** هل يوجد اتصال بالإنترنت الآن؟ */
+    fun isOnline(): Boolean
+
+    /** هل توجد بيانات محفوظة تعمل دون إنترنت؟ */
+    fun hasOfflineData(): Boolean
+
+    // --- المفضلة ---
+
+    /** معرّفات المحلات في مفضلة المستخدم. */
+    fun favoriteIds(): Set<String>
+
+    /** يبدّل حالة المفضلة ويعيد الحالة الجديدة. */
+    fun toggleFavorite(placeId: String): Boolean
+
+    /** كل المحلات التي أضافها المستخدم بنفسه. */
+    fun userPlaces(): List<Place>
+
+    /**
+     * إضافة محل جديد من المستخدم.
+     *
+     * @return المكان كما حُفظ فعلياً على الجهاز.
+     */
+    fun addUserPlace(place: Place): Place
 }

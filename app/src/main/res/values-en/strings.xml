@@ -45,10 +45,39 @@
     <string name="location_off">Location services are disabled on this device</string>
 
     <string name="state_empty_title">No data yet</string>
-    <string name="state_empty_body">The structure is ready to connect a database or backend. Add a data source and content will appear here.</string>
+    <string name="state_empty_body">No matching results were found in this area. Try a wider search, a different category, or another city.</string>
     <string name="action_retry">Retry</string>
     <string name="action_back">Back</string>
     <string name="loading">Loading…</string>
+    <string name="error_generic">The operation could not be completed. Please try again shortly.</string>
+    <string name="offline_notice">No internet connection — results are shown from data saved on your device.</string>
+
+    <string name="favorite_add">Add to favorites</string>
+    <string name="favorite_remove">Remove from favorites</string>
+    <string name="section_favorites">My favorites</string>
+    <string name="favorites_empty">You have not added any place to favorites yet</string>
+
+    <string name="add_place_title">Add a place</string>
+    <string name="add_place_subtitle">Add a place you know so it appears in your guide on this device.</string>
+    <string name="add_place_open">Add a place</string>
+    <string name="add_place_name">Place name</string>
+    <string name="add_place_type">Business type (e.g. pharmacy)</string>
+    <string name="add_place_phone">Phone number (optional)</string>
+    <string name="add_place_address">Address (optional)</string>
+    <string name="add_place_hours">Working hours (optional)</string>
+    <string name="add_place_email">Additional notes</string>
+    <string name="add_place_city">City</string>
+    <string name="add_place_category">Category</string>
+    <string name="add_place_save">Save place</string>
+    <string name="add_place_cancel">Cancel</string>
+    <string name="add_place_name_required">Enter the place name first</string>
+    <string name="add_place_saved">The place was added successfully</string>
+    <string name="add_place_saved_approx">Added. We could not determine an exact location, so the position is shown approximately at the city center.</string>
+
+    <string name="attribution_osm">Geographic data from OpenStreetMap, licensed under ODbL, credited to its volunteer community.</string>
+    <string name="detail_approximate_location">Approximate location — the city center is shown because exact coordinates are unavailable.</string>
+    <string name="source_user_added">Added by a user</string>
+    <string name="detail_kind">Business type</string>
 
     <string name="cd_category_icon">Category icon</string>
     <string name="cd_place_image">Place image</string>

@@ -17,6 +17,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,6 +34,7 @@ import com.dalilyemen.app.ui.MainViewModel
 import com.dalilyemen.app.ui.component.EmptyState
 import com.dalilyemen.app.ui.component.PlaceCard
 import com.dalilyemen.app.ui.component.categoryTitle
+import com.dalilyemen.app.ui.component.kindLabel
 
 /** شاشة تصنيف واحد مع تصفية بالمدينة. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -99,7 +101,17 @@ fun CategoryScreen(
                     item {
                         EmptyState(
                             title = stringResource(R.string.state_empty_title),
-                            body = stringResource(R.string.state_empty_body),
+                            body = state.errorMessage ?: stringResource(R.string.state_empty_body),
+                            actionLabel = if (state.errorMessage != null) {
+                                stringResource(R.string.action_retry)
+                            } else {
+                                null
+                            },
+                            onAction = if (state.errorMessage != null) {
+                                { viewModel.loadCategory(categoryId = categoryId, cityId = cityId) }
+                            } else {
+                                null
+                            },
                         )
                     }
                 }
@@ -108,10 +120,21 @@ fun CategoryScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 24.dp),
                 ) {
+                    if (state.errorMessage != null) {
+                        item {
+                            Text(
+                                text = state.errorMessage.orEmpty(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                            )
+                        }
+                    }
                     items(state.places, key = { it.id }) { place ->
                         PlaceCard(
                             place = place,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                            trailingHint = kindLabel(place.kindValue),
                             onClick = { onOpenPlace(place.id) },
                         )
                     }

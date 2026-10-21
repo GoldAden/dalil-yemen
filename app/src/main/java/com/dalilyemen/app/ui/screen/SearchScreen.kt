@@ -179,12 +179,24 @@ fun SearchScreen(
                             } else {
                                 stringResource(R.string.state_empty_title)
                             },
-                            body = if (state.hasSearched) {
-                                ""
-                            } else {
-                                stringResource(R.string.search_empty)
+                            body = when {
+                                // عند تعذّر الوصول إلى المصدر نوضّح السبب بدل
+                                // ادّعاء أن البحث لم يجد شيئاً.
+                                state.errorMessage != null -> state.errorMessage.orEmpty()
+                                state.hasSearched -> ""
+                                else -> stringResource(R.string.search_empty)
                             },
                             icon = SearchOffIcon,
+                            actionLabel = if (state.errorMessage != null) {
+                                stringResource(R.string.action_retry)
+                            } else {
+                                null
+                            },
+                            onAction = if (state.errorMessage != null) {
+                                { viewModel.runSearch() }
+                            } else {
+                                null
+                            },
                         )
                     }
                 }
@@ -193,6 +205,16 @@ fun SearchScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 24.dp),
                 ) {
+                    if (state.errorMessage != null) {
+                        item {
+                            Text(
+                                text = state.errorMessage.orEmpty(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                            )
+                        }
+                    }
                     items(state.results, key = { it.id }) { place ->
                         PlaceCard(
                             place = place,

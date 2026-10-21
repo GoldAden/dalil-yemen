@@ -51,10 +51,42 @@
 
     <!-- حالات عامة -->
     <string name="state_empty_title">لا توجد بيانات بعد</string>
-    <string name="state_empty_body">البنية جاهزة لربط قاعدة بيانات أو خدمة خلفية. أضف مصدر البيانات ليظهر المحتوى هنا.</string>
+    <string name="state_empty_body">لم نعثر على نتائج مطابقة في هذه المنطقة. جرّب توسيع نطاق البحث أو تغيير التصنيف أو المدينة.</string>
     <string name="action_retry">إعادة المحاولة</string>
     <string name="action_back">رجوع</string>
     <string name="loading">جارٍ التحميل…</string>
+    <string name="error_generic">تعذّر إتمام العملية. جرّب مرة أخرى بعد قليل.</string>
+    <string name="offline_notice">لا يوجد اتصال بالإنترنت — تعرض النتائج من البيانات المحفوظة على جهازك.</string>
+
+    <!-- المفضلة -->
+    <string name="favorite_add">إضافة إلى المفضلة</string>
+    <string name="favorite_remove">إزالة من المفضلة</string>
+    <string name="section_favorites">مفضلتي</string>
+    <string name="favorites_empty">لم تُضف أي محل إلى المفضلة بعد</string>
+
+    <!-- إضافة محل -->
+    <string name="add_place_title">إضافة محل</string>
+    <string name="add_place_subtitle">أضف محلاً تعرفه ليظهر في دليلك على هذا الجهاز.</string>
+    <string name="add_place_open">أضف محلاً</string>
+    <string name="add_place_name">اسم المحل</string>
+    <string name="add_place_email">ملاحظات إضافية</string>
+    <string name="add_place_name_required">أدخل اسم المحل أولاً</string>
+    <string name="add_place_saved_approx">تمّت الإضافة. لم نتمكن من تحديد الموقع بدقة، لذا يُعرض الموقع تقريبياً على مركز المدينة.</string>
+    <string name="add_place_saved">تمّت إضافة المحل بنجاح</string>
+    <string name="add_place_type">نوع النشاط (مثال: صيدلية)</string>
+    <string name="add_place_phone">رقم الهاتف (اختياري)</string>
+    <string name="add_place_address">العنوان (اختياري)</string>
+    <string name="add_place_hours">ساعات العمل (اختياري)</string>
+    <string name="add_place_city">المدينة</string>
+    <string name="add_place_category">التصنيف</string>
+    <string name="add_place_save">حفظ المحل</string>
+    <string name="add_place_cancel">إلغاء</string>
+    <string name="detail_kind">نوع النشاط</string>
+
+    <!-- إسناد البيانات -->
+    <string name="attribution_osm">البيانات الجغرافية من مشروع OpenStreetMap بترخيص ODbL، وتُنسب إلى مجتمع المتطوعين فيه.</string>
+    <string name="detail_approximate_location">الموقع تقريبي — يعرض مركز المدينة لأن الإحداثيات الدقيقة غير متوفرة.</string>
+    <string name="source_user_added">أضافه مستخدم</string>
 
     <!-- الوصف -->
     <string name="cd_category_icon">أيقونة القسم</string>

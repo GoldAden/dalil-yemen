@@ -17,6 +17,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.dalilyemen.app.ui.MainViewModel
 import com.dalilyemen.app.ui.Routes
+import com.dalilyemen.app.ui.screen.AddPlaceScreen
+import com.dalilyemen.app.ui.screen.AddPlaceScreen
 import com.dalilyemen.app.ui.screen.CategoryScreen
 import com.dalilyemen.app.ui.screen.HomeScreen
 import com.dalilyemen.app.ui.screen.PlaceDetailScreen
@@ -59,6 +61,14 @@ fun DalilYemenApp() {
                             onOpenPlace = { id ->
                                 navController.navigate(Routes.placeDetail(id))
                             },
+                            onOpenAddPlace = { navController.navigate(Routes.ADD_PLACE) },
+                        )
+                    }
+
+                    composable(Routes.ADD_PLACE) {
+                        AddPlaceScreen(
+                            viewModel = viewModel,
+                            onBack = { navController.popBackStack() },
                         )
                     }
 
