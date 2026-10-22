@@ -1,7 +1,33 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
+
+/**
+ * إعداد القاعدة المشتركة (اختياري بالكامل).
+ *
+ * لا تُكتب أي مفاتيح داخل الشيفرة ولا داخل المستودع. تُقرأ القيم من:
+ *  1) متغيّرات البيئة SHARED_DB_URL / SHARED_DB_KEY (تُستخدم في CI كأسرار)،
+ *  2) وإلا من ملف محلي غير مرفوع اسمه sync.properties في جذر المشروع.
+ *
+ * إن غابت القيم تبقى القيمتان فارغتين، وتعمل الميزة كـ«غير مُفعّلة» بهدوء،
+ * ويبقى التطبيق كاملاً يعمل بالتخزين المحلي ونفس تجربة الاستخدام.
+ */
+fun sharedDbValue(key: String): String {
+    System.getenv(key)?.takeIf { it.isNotBlank() }?.let { return it.trim() }
+    val propsFile = rootProject.file("sync.properties")
+    if (propsFile.exists()) {
+        val props = Properties()
+        propsFile.inputStream().use { props.load(it) }
+        props.getProperty(key)?.takeIf { it.isNotBlank() }?.let { return it.trim() }
+    }
+    return ""
+}
+
+val sharedDbUrl: String = sharedDbValue("SHARED_DB_URL")
+val sharedDbKey: String = sharedDbValue("SHARED_DB_KEY")
 
 android {
     namespace = "com.dalilyemen.app"
@@ -19,6 +45,10 @@ android {
 
         // التطبيق عربي أولاً مع دعم الإنجليزية
         resourceConfigurations += listOf("ar", "en")
+
+        // القاعدة المشتركة: قيم تُحقن وقت البناء، وفارغة افتراضياً.
+        buildConfigField("String", "SHARED_DB_URL", "\"$sharedDbUrl\"")
+        buildConfigField("String", "SHARED_DB_KEY", "\"$sharedDbKey\"")
     }
 
     buildTypes {
@@ -91,6 +121,9 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     testImplementation("junit:junit:4.13.2")
+    // تنفيذ حقيقي لـ JSON داخل اختبارات الوحدة بدل النسخة الوهمية في أندرويد.
+    // الاختبارات على الجهاز/المحاكي تستخدم نسخة النظام ولا تحتاج هذا السطر.
+    testImplementation("org.json:json:20240303")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-test-manifest")

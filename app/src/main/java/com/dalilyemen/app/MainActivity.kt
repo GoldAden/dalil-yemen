@@ -18,7 +18,6 @@ import androidx.navigation.compose.rememberNavController
 import com.dalilyemen.app.ui.MainViewModel
 import com.dalilyemen.app.ui.Routes
 import com.dalilyemen.app.ui.screen.AddPlaceScreen
-import com.dalilyemen.app.ui.screen.AddPlaceScreen
 import com.dalilyemen.app.ui.screen.CategoryScreen
 import com.dalilyemen.app.ui.screen.HomeScreen
 import com.dalilyemen.app.ui.screen.PlaceDetailScreen

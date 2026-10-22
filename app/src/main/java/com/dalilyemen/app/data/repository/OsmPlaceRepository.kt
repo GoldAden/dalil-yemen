@@ -5,6 +5,7 @@ import com.dalilyemen.app.data.model.Categories
 import com.dalilyemen.app.data.model.CityGeo
 import com.dalilyemen.app.data.model.LatLng
 import com.dalilyemen.app.data.model.Place
+import com.dalilyemen.app.data.model.PlaceDeduper
 import com.dalilyemen.app.data.model.YemenCities
 import com.dalilyemen.app.data.remote.NetworkMonitor
 import com.dalilyemen.app.data.remote.OsmApiClient
@@ -12,7 +13,11 @@ import com.dalilyemen.app.data.remote.OsmPlaceMapper
 import com.dalilyemen.app.data.remote.OsmSource
 import com.dalilyemen.app.data.remote.OsmText
 import com.dalilyemen.app.data.remote.SearchSynonyms
+import com.dalilyemen.app.data.sync.SharedPlaceSource
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
 
@@ -23,8 +28,10 @@ import java.util.Locale
  *  1. قاعدة مضمّنة مع التطبيق (لقطة من OpenStreetMap) → تعمل دون إنترنت.
  *  2. ذاكرة الجلسة → كل ما شاهده المستخدم في هذه الجلسة.
  *  3. إضافات المستخدم ومفضلته المحفوظة على الجهاز.
- *  4. بحث حيّ في خدمة التسمية الجغرافية الرسمية عند توفّر الاتصال.
- *  5. كاش على الجهاز يقلّل الطلبات ويعمل عند انقطاع الشبكة.
+ *  4. القاعدة المشتركة (اختيارية): مساهمات مستخدمين آخرين، وتكون
+ *     معطّلة بهدوء تماماً إن لم يُضبط إعدادها.
+ *  5. بحث حيّ في خدمة التسمية الجغرافية الرسمية عند توفّر الاتصال.
+ *  6. كاش على الجهاز يقلّل الطلبات ويعمل عند انقطاع الشبكة.
  *
  * لا تُختلق أي بيانات: إن لم نجد شيئاً نُعيد قائمة فارغة وتشرح الواجهة
  * السبب للمستخدم.
@@ -38,6 +45,19 @@ class OsmPlaceRepository(context: Context) : PlaceRepository {
     private val local = LocalPlaceStore(appContext)
     private val network = NetworkMonitor(appContext)
 
+    /**
+     * القاعدة المشتركة. معطّلة بهدوء إن لم تُضبط إعداداتها وقت البناء،
+     * وحينها لا يُلمس الشبكة إطلاقاً.
+     */
+    private val shared = SharedPlaceSource()
+
+    /** نطاق خلفي لنشر المساهمات دون تعطيل واجهة المستخدم. */
+    private val publishScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /** نجلب القاعدة المشتركة مرة واحدة في الجلسة كي لا نُثقل الاتصال. */
+    @Volatile
+    private var sharedLoaded = false
+
     // --------------------------- إمكانات المصدر ---------------------------
 
     override fun isOnline(): Boolean = runCatching { network.isOnline() }.getOrDefault(false)
@@ -47,6 +67,7 @@ class OsmPlaceRepository(context: Context) : PlaceRepository {
     // ------------------------------ المقترحة ------------------------------
 
     override suspend fun getFeatured(limit: Int): List<Place> = withContext(Dispatchers.IO) {
+        refreshSharedIfPossible()
         val pool = pool()
         if (pool.isEmpty()) return@withContext emptyList()
 
@@ -77,6 +98,7 @@ class OsmPlaceRepository(context: Context) : PlaceRepository {
         radiusKm: Double,
         limit: Int,
     ): List<Place> = withContext(Dispatchers.IO) {
+        refreshSharedIfPossible()
         val pool = pool()
 
         // نوسّع النطاق تدريجياً بدل إظهار حالة فارغة بسرعة.
@@ -113,7 +135,7 @@ class OsmPlaceRepository(context: Context) : PlaceRepository {
             }
         }
 
-        val result = merged.values.take(limit).toList()
+        val result = PlaceDeduper.merge(merged.values.take(limit).toList())
         if (result.isNotEmpty()) {
             disk.write(nearbyKey(origin), result)
             return@withContext result
@@ -130,6 +152,7 @@ class OsmPlaceRepository(context: Context) : PlaceRepository {
         cityId: String?,
         categoryId: String?,
     ): List<Place> = withContext(Dispatchers.IO) {
+        refreshSharedIfPossible()
         val rawQuery = query.trim()
         val normalized = OsmText.normalize(rawQuery)
 
@@ -168,7 +191,7 @@ class OsmPlaceRepository(context: Context) : PlaceRepository {
             }
         }
 
-        val result = merged.values.toList()
+        val result = PlaceDeduper.merge(merged.values.toList())
         if (result.isNotEmpty()) {
             disk.write(searchKey(rawQuery, cityId, categoryId), result)
             return@withContext result
@@ -181,6 +204,7 @@ class OsmPlaceRepository(context: Context) : PlaceRepository {
 
     override suspend fun getByCategory(categoryId: String, cityId: String?): List<Place> =
         withContext(Dispatchers.IO) {
+            refreshSharedIfPossible()
             val merged = LinkedHashMap<String, Place>()
 
             pool().asSequence()
@@ -198,7 +222,7 @@ class OsmPlaceRepository(context: Context) : PlaceRepository {
                 }
             }
 
-            val result = merged.values.toList()
+            val result = PlaceDeduper.merge(merged.values.toList())
             if (result.isNotEmpty()) {
                 disk.write(categoryKey(categoryId, cityId), result)
                 return@withContext result
@@ -236,7 +260,27 @@ class OsmPlaceRepository(context: Context) : PlaceRepository {
     override fun addUserPlace(place: Place): Place {
         runCatching { local.addUserPlace(place) }
         memory.put(place)
+        // مشاركة اختيارية: تُرسل في الخلف بحالة «قيد المراجعة»، ولا تؤثّر
+        // على نجاح الإضافة محلياً إن فشلت أو كانت الميزة غير مُعدّة.
+        if (shared.isEnabled) {
+            publishScope.launch {
+                runCatching { shared.publish(place) }
+            }
+        }
         return place
+    }
+
+    /**
+     * يجلب سجلّات القاعدة المشتركة مرة واحدة في الجلسة إن كانت مُفعّلة.
+     * لا يرفع استثناء ولا يعطّل أي مسار أساسي: أي فشل يعني قائمة فارغة.
+     */
+    private fun refreshSharedIfPossible() {
+        if (!shared.isEnabled || sharedLoaded) return
+        sharedLoaded = true
+        runCatching {
+            val fetched = shared.fetch()
+            if (fetched.isNotEmpty()) memory.putAll(fetched)
+        }
     }
 
     // ------------------------------- أدوات داخلية -------------------------------
@@ -251,11 +295,14 @@ class OsmPlaceRepository(context: Context) : PlaceRepository {
         snapshot.places().forEach { map[it.id] = it }
         memory.all().forEach { map[it.id] = it }
         local.userPlaces().forEach { map[it.id] = it }
-        return map.values.toList()
+        // مساهمات القاعدة المشتركة التي جُلبت في هذه الجلسة (إن وُجدت).
+        shared.cached().forEach { map[it.id] = it }
+        return PlaceDeduper.merge(map.values.toList())
     }
 
     private fun cachedPlace(id: String): Place? =
         memory.get(id)
+            ?: shared.cached().firstOrNull { it.id == id }
             ?: snapshot.byId(id)
             ?: local.userPlaces().firstOrNull { it.id == id }
             ?: disk.read("place:$id", allowExpired = true)?.firstOrNull()

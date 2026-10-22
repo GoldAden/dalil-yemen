@@ -47,6 +47,13 @@ data class Place(
      */
     val coordinatesApproximate: Boolean = false,
     val source: PlaceSource = PlaceSource.OPENSTREETMAP,
+    /**
+     * هل جاء هذا المكان من القاعدة المشتركة (أضافه مستخدم من جهاز آخر)؟
+     *
+     * نُظهر وسم «أضافه مستخدم» لمثل هذه السجلّات حتى يعرف المستخدم أن
+     * المعلومة من مساهمة بشرية لا من خريطة مرجعية.
+     */
+    val isShared: Boolean = false,
 ) {
 
     /** هل أضاف هذا المكان مستخدم التطبيق؟ */

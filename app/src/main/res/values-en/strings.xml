@@ -58,14 +58,14 @@
     <string name="favorites_empty">You have not added any place to favorites yet</string>
 
     <string name="add_place_title">Add a place</string>
-    <string name="add_place_subtitle">Add a place you know so it appears in your guide on this device.</string>
+    <string name="add_place_subtitle">Add a place you know so it appears in your guide on this device; it may also be shared with other users once the shared database is enabled.</string>
     <string name="add_place_open">Add a place</string>
     <string name="add_place_name">Place name</string>
     <string name="add_place_type">Business type (e.g. pharmacy)</string>
     <string name="add_place_phone">Phone number (optional)</string>
     <string name="add_place_address">Address (optional)</string>
     <string name="add_place_hours">Working hours (optional)</string>
-    <string name="add_place_email">Additional notes</string>
+    <string name="add_place_notes">Additional notes</string>
     <string name="add_place_city">City</string>
     <string name="add_place_category">Category</string>
     <string name="add_place_save">Save place</string>
@@ -77,6 +77,7 @@
     <string name="attribution_osm">Geographic data from OpenStreetMap, licensed under ODbL, credited to its volunteer community.</string>
     <string name="detail_approximate_location">Approximate location — the city center is shown because exact coordinates are unavailable.</string>
     <string name="source_user_added">Added by a user</string>
+    <string name="source_shared_user">Added by another user — a user contribution, not a reference map.</string>
     <string name="detail_kind">Business type</string>
 
     <string name="cd_category_icon">Category icon</string>

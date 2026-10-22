@@ -221,7 +221,7 @@ fun AddPlaceScreen(
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
-                    label = { Text(stringResource(R.string.add_place_email)) },
+                    label = { Text(stringResource(R.string.add_place_notes)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 6.dp),

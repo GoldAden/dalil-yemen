@@ -3,6 +3,9 @@
 build/
 local.properties
 
+# إعداد القاعدة المشتركة (مفاتيح محلية — لا تُرفع أبداً)
+sync.properties
+
 # Android Studio / IntelliJ
 .idea/
 *.iml

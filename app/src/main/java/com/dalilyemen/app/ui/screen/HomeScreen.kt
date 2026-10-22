@@ -4,9 +4,7 @@ import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -25,13 +24,11 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -40,6 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dalilyemen.app.R
 import com.dalilyemen.app.data.model.LatLng
 import com.dalilyemen.app.data.model.Place
+import com.dalilyemen.app.data.remote.OsmText
 import com.dalilyemen.app.ui.LocationState
 import com.dalilyemen.app.ui.MainViewModel
 import com.dalilyemen.app.ui.component.CategoryGrid
@@ -78,6 +76,14 @@ fun HomeScreen(
     val offline = !viewModel.isOnline()
     val errorMessage = nearby.errorMessage ?: featured.errorMessage
 
+    // «المقترحة» لا تُكرّر ما ظهر في «القريبة» حتى لا يرى المستخدم المحل
+    // نفسه مرتين في نفس الشاشة.
+    val nearbyIds = nearby.places.mapTo(HashSet()) { it.id }
+    val nearbyNames = nearby.places.mapTo(HashSet()) { OsmText.normalize(it.name) }
+    val featuredPlaces = featured.places.filterNot { place ->
+        place.id in nearbyIds || OsmText.normalize(place.name) in nearbyNames
+    }
+
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 24.dp),
@@ -98,32 +104,31 @@ fun HomeScreen(
                 )
                 Spacer(Modifier.height(14.dp))
 
-                // حقل بحث مرئي يفتح شاشة البحث عند اللمس.
-                // الحقل نفسه معطّل عن الكتابة، ونضع فوقه غطاءً شفافاً
-                // قابلاً للنقر ينقل المستخدم إلى شاشة البحث الكاملة.
-                Box {
-                    OutlinedTextField(
-                        value = "",
-                        onValueChange = {},
-                        readOnly = true,
-                        enabled = false,
-                        placeholder = { Text(stringResource(R.string.search_hint)) },
-                        leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    val interaction = remember { MutableInteractionSource() }
-                    Box(
-                        Modifier
-                            .matchParentSize()
-                            .clickable(
-                                interactionSource = interaction,
-                                indication = null,
-                                onClick = onOpenSearch,
-                            ),
-                    )
-                }
-                TextButton(onClick = onOpenSearch) {
-                    Text(stringResource(R.string.search_title))
+                // شريط بحث مرئي بسيط: اللمس عليه ينقل المستخدم إلى شاشة
+                // البحث الكاملة، بلا حقل معطّل ولا غطاء شفاف فوقه.
+                Surface(
+                    shape = MaterialTheme.shapes.large,
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onOpenSearch),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Search,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = stringResource(R.string.search_hint),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         }
@@ -157,11 +162,8 @@ fun HomeScreen(
             ) {
                 Button(onClick = onOpenAddPlace) {
                     Icon(Icons.Outlined.AddBusiness, contentDescription = null)
-                    Spacer(Modifier.height(0.dp))
-                    Text(
-                        text = stringResource(R.string.add_place_open),
-                        modifier = Modifier.padding(start = 8.dp),
-                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = stringResource(R.string.add_place_open))
                 }
             }
         }
@@ -232,7 +234,7 @@ fun HomeScreen(
             )
         }
 
-        if (featured.places.isEmpty()) {
+        if (featuredPlaces.isEmpty()) {
             item {
                 EmptyState(
                     title = stringResource(R.string.state_empty_title),
@@ -240,7 +242,7 @@ fun HomeScreen(
                 )
             }
         } else {
-            items(featured.places, key = { "f_" + it.id }) { place ->
+            items(featuredPlaces, key = { "f_" + it.id }) { place ->
                 PlaceCard(
                     place = place,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),

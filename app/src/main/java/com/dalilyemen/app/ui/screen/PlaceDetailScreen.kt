@@ -291,7 +291,16 @@ private fun PlaceDetailContent(
         }
 
         // --- مصدر البيانات ---
-        if (place.addedByUser) {
+        if (place.isShared) {
+            item {
+                Text(
+                    text = stringResource(R.string.source_shared_user),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                )
+            }
+        } else if (place.addedByUser) {
             item {
                 Text(
                     text = stringResource(R.string.source_user_added),

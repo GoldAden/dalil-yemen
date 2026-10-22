@@ -127,54 +127,61 @@ object OsmSource {
 object SearchSynonyms {
 
     private val synonyms: Map<String, String> = buildMap {
-        fun put(category: String, vararg words: String) {
-            words.forEach { put(OsmText.normalize(it), category) }
+        // ملاحظة: نكتب في الخريطة مباشرة عبر `map` بدل استدعاء دالة محلية
+        // باسم put، لأن ذلك كان يستدعي نفسها بلا نهاية.
+        val map: MutableMap<String, String> = this
+
+        fun bind(category: String, vararg words: String) {
+            words.forEach { word ->
+                val key = OsmText.normalize(word)
+                if (key.isNotEmpty()) map[key] = category
+            }
         }
 
         val r = Categories.RESTAURANTS
-        put(
+        bind(
             r,
             "مطعم", "مطاعم", "مقهى", "مقهي", "كافي", "كافيه", "كوفي", "قهوة", "فطور", "وجبات", "حلويات",
             "مخبزة", "مخبز", "فرن", "معجنات", "حلواني", "بوفية",
         )
-        put(r, "restaurant", "restaurants", "cafe", "coffee", "food", "fastfood", "pizza", "burger", "snack", "bakery")
+        bind(r, "restaurant", "restaurants", "cafe", "coffee", "food", "fastfood", "pizza", "burger", "snack", "bakery")
 
         val h = Categories.HEALTH
-        put(
+        bind(
             h,
             "مستشفى", "مشفى", "مستوصف", "عيادة", "عيادات", "صيدلية", "صيدليات", "دكتور", "طبيب", "اطباء",
             "اسنان", "مختبر", "تحاليل", "تمريض", "صحة", "بيطري", "نظارات", "بصريات",
         )
-        put(h, "hospital", "clinic", "pharmacy", "pharmacies", "doctor", "dentist", "medical", "health", "laboratory", "lab", "medicine", "optician")
+        bind(h, "hospital", "clinic", "pharmacy", "pharmacies", "doctor", "dentist", "medical", "health", "laboratory", "lab", "medicine", "optician")
 
         val f = Categories.FUEL
-        put(f, "وقود", "بنزين", "ديزل", "محطة", "محطات", "محطة وقود", "غاز", "تعبئة", "مغسلة سيارات")
-        put(f, "fuel", "petrol", "gas", "gasoline", "diesel", "petrolstation", "charging", "carwash")
+        bind(f, "وقود", "بنزين", "ديزل", "محطة", "محطات", "محطة وقود", "غاز", "تعبئة", "مغسلة سيارات")
+        bind(f, "fuel", "petrol", "gas", "gasoline", "diesel", "petrolstation", "charging", "carwash")
 
         val m = Categories.MAINTENANCE
-        put(
+        bind(
             m,
             "ورشة", "ورش", "صيانة", "تصليح", "ميكانيكي", "كهرباء سيارات", "بنشر", "اطارات", "كوشوك",
             "قطع غيار", "حداد", "نجار", "سباك", "كهربائي", "ادوات", "عدة", "مفاتيح", "خياط",
         )
-        put(m, "repair", "garage", "mechanic", "workshop", "tyre", "tire", "maintenance", "spare", "parts", "carpenter", "plumber", "hardware", "blacksmith")
+        bind(m, "repair", "garage", "mechanic", "workshop", "tyre", "tire", "maintenance", "spare", "parts", "carpenter", "plumber", "hardware", "blacksmith")
 
         val e = Categories.ELECTRONICS
-        put(
+        bind(
             e,
             "جوال", "جوالات", "موبايل", "هاتف", "هواتف", "الكترونيات", "إلكترونيات", "كمبيوتر", "لابتوب",
             "شاشة", "ثلاجة", "غسالة", "تكييف", "تصوير", "استوديو",
         )
-        put(e, "mobile", "phone", "electronics", "computer", "laptop", "telecom", "appliance", "smartphone", "copyshop")
+        bind(e, "mobile", "phone", "electronics", "computer", "laptop", "telecom", "appliance", "smartphone", "copyshop")
 
         val s = Categories.STORES
-        put(
+        bind(
             s,
             "سوق", "أسواق", "اسواق", "بازار", "بقالة", "سوبرماركت", "متجر", "متاجر", "محل", "محلات",
             "ملابس", "ذهب", "مجوهرات", "خضار", "فواكه", "حلاق", "بوفية", "مول", "فندق", "فنادق", "بنك",
             "بنوك", "صرافة", "بريد", "قرطاسية", "اثاث", "أثاث", "مكتبة", "عطور", "هدايا", "سفر وسياحة", "صالة", "نادي",
         )
-        put(s, "market", "mall", "supermarket", "grocery", "shop", "store", "clothes", "gold", "jewelry", "shoes", "boutique", "hotel", "bank", "exchange", "post", "stationery", "furniture", "book", "perfumery", "gift", "travel", "gym", "fitness")
+        bind(s, "market", "mall", "supermarket", "grocery", "shop", "store", "clothes", "gold", "jewelry", "shoes", "boutique", "hotel", "bank", "exchange", "post", "stationery", "furniture", "book", "perfumery", "gift", "travel", "gym", "fitness")
     }
 
     /** كل كلمات البحث التي تقود إلى تصنيف. */

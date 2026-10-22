@@ -66,10 +66,10 @@
 
     <!-- إضافة محل -->
     <string name="add_place_title">إضافة محل</string>
-    <string name="add_place_subtitle">أضف محلاً تعرفه ليظهر في دليلك على هذا الجهاز.</string>
+    <string name="add_place_subtitle">أضف محلاً تعرفه ليظهر في دليلك على هذا الجهاز، وقد تُتاح مشاركته مع بقية المستخدمين عند تفعيل قاعدة المشاركة.</string>
     <string name="add_place_open">أضف محلاً</string>
     <string name="add_place_name">اسم المحل</string>
-    <string name="add_place_email">ملاحظات إضافية</string>
+    <string name="add_place_notes">ملاحظات إضافية</string>
     <string name="add_place_name_required">أدخل اسم المحل أولاً</string>
     <string name="add_place_saved_approx">تمّت الإضافة. لم نتمكن من تحديد الموقع بدقة، لذا يُعرض الموقع تقريبياً على مركز المدينة.</string>
     <string name="add_place_saved">تمّت إضافة المحل بنجاح</string>
@@ -87,6 +87,7 @@
     <string name="attribution_osm">البيانات الجغرافية من مشروع OpenStreetMap بترخيص ODbL، وتُنسب إلى مجتمع المتطوعين فيه.</string>
     <string name="detail_approximate_location">الموقع تقريبي — يعرض مركز المدينة لأن الإحداثيات الدقيقة غير متوفرة.</string>
     <string name="source_user_added">أضافه مستخدم</string>
+    <string name="source_shared_user">أضافه مستخدم آخر — معلومة من مشاركة مستخدمين وليست من خريطة مرجعية.</string>
 
     <!-- الوصف -->
     <string name="cd_category_icon">أيقونة القسم</string>

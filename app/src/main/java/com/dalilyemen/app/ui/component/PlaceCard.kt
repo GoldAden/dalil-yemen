@@ -1,6 +1,7 @@
 package com.dalilyemen.app.ui.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.outlined.StarRate
+import androidx.compose.material.icons.outlined.NearMe
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,8 +34,10 @@ import com.dalilyemen.app.data.model.Place
 /**
  * بطاقة محل في القوائم.
  *
- * تعرض الصورة إن توفّرت، وإلا بديلاً رمزياً. عند غياب الاسم (وهو الحال
- * قبل ربط البيانات) نعرض نصاً واضحاً بأن البيانات غير متوفرة بدل اختلاق اسم.
+ * تعرض الصورة إن توفّرت، وإلا بديلاً رمزياً.
+ *
+ * السطر الإضافي (إن وُجد) يحمل المسافة أو نوع النشاط، ولذلك نُرافقه بأيقونة
+ * اتجاه/موقع مناسبة — لا بأيقونة تقييم، لأننا لا نعرض تقييمات.
  */
 @Composable
 fun PlaceCard(
@@ -43,7 +46,12 @@ fun PlaceCard(
     trailingHint: String? = null,
     onClick: () -> Unit,
 ) {
-    DalilCard(modifier = modifier.fillMaxWidth(), padding = androidx.compose.foundation.layout.PaddingValues(12.dp)) {
+    DalilCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        padding = androidx.compose.foundation.layout.PaddingValues(12.dp),
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -95,7 +103,7 @@ fun PlaceCard(
                     Spacer(Modifier.height(6.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = Icons.Outlined.StarRate,
+                            imageVector = Icons.Outlined.NearMe,
                             contentDescription = null,
                             modifier = Modifier.size(16.dp),
                             tint = MaterialTheme.colorScheme.tertiary,
