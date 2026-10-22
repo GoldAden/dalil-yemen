@@ -39,6 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dalilyemen.app.R
 import com.dalilyemen.app.data.model.YemenCities
 import com.dalilyemen.app.ui.MainViewModel
+import com.dalilyemen.app.ui.SearchTransitions
 import com.dalilyemen.app.ui.component.EmptyState
 import com.dalilyemen.app.ui.component.HomeCategories
 import com.dalilyemen.app.ui.component.PlaceCard
@@ -171,37 +172,7 @@ fun SearchScreen(
             Spacer(Modifier.height(4.dp))
 
             when {
-                state.results.isEmpty() -> LazyColumn(Modifier.fillMaxSize()) {
-                    item {
-                        EmptyState(
-                            title = if (state.hasSearched) {
-                                stringResource(R.string.search_no_results)
-                            } else {
-                                stringResource(R.string.state_empty_title)
-                            },
-                            body = when {
-                                // عند تعذّر الوصول إلى المصدر نوضّح السبب بدل
-                                // ادّعاء أن البحث لم يجد شيئاً.
-                                state.errorMessage != null -> state.errorMessage.orEmpty()
-                                state.hasSearched -> ""
-                                else -> stringResource(R.string.search_empty)
-                            },
-                            icon = SearchOffIcon,
-                            actionLabel = if (state.errorMessage != null) {
-                                stringResource(R.string.action_retry)
-                            } else {
-                                null
-                            },
-                            onAction = if (state.errorMessage != null) {
-                                { viewModel.runSearch() }
-                            } else {
-                                null
-                            },
-                        )
-                    }
-                }
-
-                else -> LazyColumn(
+                state.results.isNotEmpty() -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 24.dp),
                 ) {
@@ -220,6 +191,36 @@ fun SearchScreen(
                             place = place,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                             onClick = { onOpenPlace(place.id) },
+                        )
+                    }
+                }
+
+                else -> LazyColumn(Modifier.fillMaxSize()) {
+                    item {
+                        EmptyState(
+                            title = if (SearchTransitions.isEmptyResult(state)) {
+                                stringResource(R.string.search_no_results)
+                            } else {
+                                stringResource(R.string.state_empty_title)
+                            },
+                            body = when {
+                                // عند تعذّر الوصول إلى المصدر نوضّح السبب بدل
+                                // ادّعاء أن البحث لم يجد شيئاً.
+                                state.errorMessage != null -> state.errorMessage.orEmpty()
+                                SearchTransitions.isEmptyResult(state) -> ""
+                                else -> stringResource(R.string.search_empty)
+                            },
+                            icon = SearchOffIcon,
+                            actionLabel = if (state.errorMessage != null) {
+                                stringResource(R.string.action_retry)
+                            } else {
+                                null
+                            },
+                            onAction = if (state.errorMessage != null) {
+                                { viewModel.runSearch() }
+                            } else {
+                                null
+                            },
                         )
                     }
                 }

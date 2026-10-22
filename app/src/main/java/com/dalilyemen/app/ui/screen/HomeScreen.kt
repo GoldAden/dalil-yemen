@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddBusiness
 import androidx.compose.material.icons.outlined.CloudOff
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
@@ -62,6 +63,7 @@ fun HomeScreen(
 ) {
     val featured by viewModel.featured.collectAsStateWithLifecycle()
     val nearby by viewModel.nearby.collectAsStateWithLifecycle()
+    val favorites by viewModel.favorites.collectAsStateWithLifecycle()
     val locationState by viewModel.locationState.collectAsStateWithLifecycle()
     val userLocation by viewModel.userLocation.collectAsStateWithLifecycle()
 
@@ -165,6 +167,46 @@ fun HomeScreen(
                     Spacer(Modifier.width(8.dp))
                     Text(text = stringResource(R.string.add_place_open))
                 }
+            }
+        }
+
+        // --- الأماكن القريبة ---
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    Icons.Outlined.FavoriteBorder,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+                SectionHeader(
+                    title = stringResource(R.string.section_favorites),
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+                )
+            }
+        }
+
+        if (favorites.places.isEmpty()) {
+            item {
+                Text(
+                    text = stringResource(R.string.favorites_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp),
+                )
+            }
+        } else {
+            items(favorites.places, key = { "fav_" + it.id }) { place ->
+                PlaceCard(
+                    place = place,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                    trailingHint = hintFor(place, userLocation),
+                    onClick = { onOpenPlace(place.id) },
+                )
             }
         }
 

@@ -18,26 +18,6 @@ import kotlinx.coroutines.launch
 /** حالة الموقع كما تظهر في الواجهة. */
 enum class LocationState { UNKNOWN, GRANTED, DENIED, UNAVAILABLE, SERVICE_OFF }
 
-/** حالة قائمة المحلات. */
-data class PlacesUiState(
-    val isLoading: Boolean = false,
-    val places: List<Place> = emptyList(),
-    val selectedCategoryId: String? = null,
-    val selectedCityId: String? = null,
-    /** رسالة خطأ قابلة للعرض إن فشل الجلب. */
-    val errorMessage: String? = null,
-)
-
-data class SearchUiState(
-    val query: String = "",
-    val isLoading: Boolean = false,
-    val results: List<Place> = emptyList(),
-    val hasSearched: Boolean = false,
-    val selectedCityId: String? = null,
-    val selectedCategoryId: String? = null,
-    val errorMessage: String? = null,
-)
-
 /**
  * عقل الشاشات: يجمع البيانات من المستودع والموقع ويعرّضها كحالات
  * بسيطة تراقبها الواجهة.
@@ -73,9 +53,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val _favoriteIds = MutableStateFlow<Set<String>>(emptySet())
     val favoriteIds: StateFlow<Set<String>> = _favoriteIds.asStateFlow()
 
+    /** قائمة المفضلة بعد حلّ المعرّفات إلى سجلات كاملة، للعرض في الرئيسية. */
+    private val _favorites = MutableStateFlow(PlacesUiState())
+    val favorites: StateFlow<PlacesUiState> = _favorites.asStateFlow()
+
     init {
         _favoriteIds.value = runCatching { repository.favoriteIds() }.getOrDefault(emptySet())
         refreshHome()
+        loadFavorites()
         syncPermissionState()
     }
 
@@ -121,6 +106,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 )
             }
             _favoriteIds.value = runCatching { repository.favoriteIds() }.getOrDefault(emptySet())
+            loadFavorites()
         }
     }
 
@@ -174,8 +160,15 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /**
+     * يُحدّث نص البحث.
+     *
+     * أي تغيير في النص يُبطل نتيجة البحث السابقة: نُصفّر «تم البحث» ونُخلي
+     * النتائج، حتى لا تظهر رسالة «لا توجد نتائج» بينما المستخدم ما زال
+     * يكتب استعلاماً جديداً لم يُنفَّذ بعد.
+     */
     fun updateSearchQuery(value: String) {
-        _search.update { it.copy(query = value) }
+        _search.update { SearchTransitions.queryChanged(it, value) }
     }
 
     fun setSearchCity(cityId: String?) {
@@ -196,7 +189,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun runSearch() {
         viewModelScope.launch {
             val state = _search.value
-            _search.update { it.copy(isLoading = true, hasSearched = true, errorMessage = null) }
+            _search.update { SearchTransitions.started(it) }
             val outcome = runCatching {
                 repository.search(
                     query = state.query.trim(),
@@ -223,16 +216,29 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         _favoriteIds.update { current ->
             if (nowFavorite) current + placeId else current - placeId
         }
+        // نُحدّث قائمة المفضلة المعروضة فوراً كي لا يبقى ما أُزيل ظاهراً.
+        loadFavorites()
     }
 
     fun isFavorite(placeId: String): Boolean = _favoriteIds.value.contains(placeId)
 
-    /** كل المحلات التي أضافها المستخدم بنفسه. */
-    fun userPlaces(): List<Place> = runCatching { repository.userPlaces() }.getOrDefault(emptyList())
-
     /** يحلّ معرّفات المفضلة إلى محلات كاملة لعرضها في قائمة. */
     suspend fun favoritePlaces(): List<Place> =
         _favoriteIds.value.mapNotNull { id -> placeById(id) }
+
+    /**
+     * يُحدّث قائمة المفضلة المعروضة في الشاشة الرئيسية.
+     *
+     * نستدعيه عند كل تغيّر في معرّفات المفضلة، فلا يبقى المحل الذي
+     * أُزيل من المفضلة معروضاً، ولا يغيب ما أُضيف للتوّ.
+     */
+    fun loadFavorites() {
+        viewModelScope.launch {
+            _favorites.update { it.copy(isLoading = true) }
+            val resolved = favoritePlaces()
+            _favorites.update { it.copy(isLoading = false, places = resolved) }
+        }
+    }
 
     /**
      * إضافة محل من المستخدم.
@@ -248,6 +254,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         address: String?,
         openingHours: String?,
         notes: String?,
+        kindValue: String?,
         latitude: Double?,
         longitude: Double?,
     ): Boolean {
@@ -270,6 +277,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             latitude = lat,
             longitude = lon,
             openingHours = openingHours?.trim()?.takeIf { it.isNotBlank() },
+            // نوع النشاط كما كتبه المستخدم (مثال: صيدلية) — بلا اختلاق تصنيف.
+            kindValue = kindValue?.trim()?.takeIf { it.isNotBlank() },
             coordinatesApproximate = !hasExactLocation,
             source = PlaceSource.USER,
         )

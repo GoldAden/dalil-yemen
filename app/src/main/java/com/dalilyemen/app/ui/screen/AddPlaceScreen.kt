@@ -61,6 +61,7 @@ fun AddPlaceScreen(
     var categoryId by remember { mutableStateOf(HomeCategories.first().id) }
     var cityId by remember { mutableStateOf<String?>(null) }
     var phone by remember { mutableStateOf("") }
+    var kind by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
     var hours by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
@@ -192,6 +193,19 @@ fun AddPlaceScreen(
                 )
             }
 
+            // --- نوع النشاط ---
+            item {
+                OutlinedTextField(
+                    value = kind,
+                    onValueChange = { kind = it },
+                    label = { Text(stringResource(R.string.add_place_type)) },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 6.dp),
+                )
+            }
+
             // --- العنوان ---
             item {
                 OutlinedTextField(
@@ -250,6 +264,7 @@ fun AddPlaceScreen(
                                 address = address,
                                 openingHours = hours,
                                 notes = notes,
+                                kindValue = kind,
                                 latitude = null,
                                 longitude = null,
                             )
